@@ -2,23 +2,23 @@ classdef densityCalculation < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
-        UIFigure                      matlab.ui.Figure
-        ResetButton                   matlab.ui.control.Button
-        CalculateButton               matlab.ui.control.Button
-        FunctionButtonGroup           matlab.ui.container.ButtonGroup
-        MoistAirButton                matlab.ui.control.RadioButton
-        NAButton                      matlab.ui.control.RadioButton
-        NAAButton                     matlab.ui.control.RadioButton
+        UIFigure                  matlab.ui.Figure
+        ResetButton               matlab.ui.control.Button
+        CalculateButton           matlab.ui.control.Button
+        FunctionButtonGroup       matlab.ui.container.ButtonGroup
+        MoistAirButton            matlab.ui.control.RadioButton
+        NAButton                  matlab.ui.control.RadioButton
+        NAAButton                 matlab.ui.control.RadioButton
         ambienttemperatureCEditFieldLabel  matlab.ui.control.Label
-        ambienttemperatureCEditField  matlab.ui.control.NumericEditField
-        relativehumidityLabel         matlab.ui.control.Label
-        relativehumidityEditField     matlab.ui.control.NumericEditField
+        t                         matlab.ui.control.NumericEditField
+        relativehumidityLabel     matlab.ui.control.Label
+        hr                        matlab.ui.control.NumericEditField
         ambientpressurePaEditFieldLabel  matlab.ui.control.Label
-        ambientpressurePaEditField    matlab.ui.control.NumericEditField
-        densityTextAreaLabel          matlab.ui.control.Label
-        densityTextArea               matlab.ui.control.TextArea
-        FunctionTextAreaLabel         matlab.ui.control.Label
-        FunctionTextArea              matlab.ui.control.TextArea
+        p                         matlab.ui.control.NumericEditField
+        densitykgm3TextAreaLabel  matlab.ui.control.Label
+        ro                        matlab.ui.control.TextArea
+        FunctionTextAreaLabel     matlab.ui.control.Label
+        FunctionTextArea          matlab.ui.control.TextArea
     end
 
     % App initialization and construction
@@ -69,9 +69,9 @@ classdef densityCalculation < matlab.apps.AppBase
             app.ambienttemperatureCEditFieldLabel.Position = [64 247 135 22];
             app.ambienttemperatureCEditFieldLabel.Text = 'ambient temperature [C]';
 
-            % Create ambienttemperatureCEditField
-            app.ambienttemperatureCEditField = uieditfield(app.UIFigure, 'numeric');
-            app.ambienttemperatureCEditField.Position = [214 247 100 22];
+            % Create t
+            app.t = uieditfield(app.UIFigure, 'numeric');
+            app.t.Position = [214 247 100 22];
 
             % Create relativehumidityLabel
             app.relativehumidityLabel = uilabel(app.UIFigure);
@@ -79,9 +79,9 @@ classdef densityCalculation < matlab.apps.AppBase
             app.relativehumidityLabel.Position = [86 209 113 22];
             app.relativehumidityLabel.Text = 'relative humidity [%]';
 
-            % Create relativehumidityEditField
-            app.relativehumidityEditField = uieditfield(app.UIFigure, 'numeric');
-            app.relativehumidityEditField.Position = [214 209 100 22];
+            % Create hr
+            app.hr = uieditfield(app.UIFigure, 'numeric');
+            app.hr.Position = [214 209 100 22];
 
             % Create ambientpressurePaEditFieldLabel
             app.ambientpressurePaEditFieldLabel = uilabel(app.UIFigure);
@@ -89,29 +89,29 @@ classdef densityCalculation < matlab.apps.AppBase
             app.ambientpressurePaEditFieldLabel.Position = [76 170 123 22];
             app.ambientpressurePaEditFieldLabel.Text = 'ambient pressure [Pa]';
 
-            % Create ambientpressurePaEditField
-            app.ambientpressurePaEditField = uieditfield(app.UIFigure, 'numeric');
-            app.ambientpressurePaEditField.Position = [214 170 100 22];
+            % Create p
+            app.p = uieditfield(app.UIFigure, 'numeric');
+            app.p.Position = [214 170 100 22];
 
-            % Create densityTextAreaLabel
-            app.densityTextAreaLabel = uilabel(app.UIFigure);
-            app.densityTextAreaLabel.HorizontalAlignment = 'right';
-            app.densityTextAreaLabel.Position = [364 224 44 22];
-            app.densityTextAreaLabel.Text = 'density';
+            % Create densitykgm3TextAreaLabel
+            app.densitykgm3TextAreaLabel = uilabel(app.UIFigure);
+            app.densitykgm3TextAreaLabel.HorizontalAlignment = 'right';
+            app.densitykgm3TextAreaLabel.Position = [372 224 86 22];
+            app.densitykgm3TextAreaLabel.Text = 'density [kg/m3]';
 
-            % Create densityTextArea
-            app.densityTextArea = uitextarea(app.UIFigure);
-            app.densityTextArea.Position = [423 188 150 60];
+            % Create ro
+            app.ro = uitextarea(app.UIFigure);
+            app.ro.Position = [473 188 150 60];
 
             % Create FunctionTextAreaLabel
             app.FunctionTextAreaLabel = uilabel(app.UIFigure);
             app.FunctionTextAreaLabel.HorizontalAlignment = 'right';
-            app.FunctionTextAreaLabel.Position = [356 360 52 22];
+            app.FunctionTextAreaLabel.Position = [406 370 52 22];
             app.FunctionTextAreaLabel.Text = 'Function';
 
             % Create FunctionTextArea
             app.FunctionTextArea = uitextarea(app.UIFigure);
-            app.FunctionTextArea.Position = [423 324 150 60];
+            app.FunctionTextArea.Position = [473 334 150 60];
         end
     end
 
