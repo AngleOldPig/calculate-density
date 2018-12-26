@@ -2,24 +2,100 @@ classdef densityCalculation < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
-        UIFigure                      matlab.ui.Figure
-        ResetButton                   matlab.ui.control.Button
-        CalculateButton               matlab.ui.control.Button
-        FunctionButtonGroup           matlab.ui.container.ButtonGroup
-        MoistAirButton                matlab.ui.control.RadioButton
-        NAButton                      matlab.ui.control.RadioButton
-        NAAButton                     matlab.ui.control.RadioButton
+        UIFigure                  matlab.ui.Figure
+        ResetButton               matlab.ui.control.Button
+        CalculateButton           matlab.ui.control.Button
+        FunctionButtonGroup       matlab.ui.container.ButtonGroup
+        MoistAirButton            matlab.ui.control.RadioButton
+        NAButton                  matlab.ui.control.RadioButton
+        NAAButton                 matlab.ui.control.RadioButton
         ambienttemperatureCEditFieldLabel  matlab.ui.control.Label
-        ambienttemperatureCEditField  matlab.ui.control.NumericEditField
-        relativehumidityLabel         matlab.ui.control.Label
-        relativehumidityEditField     matlab.ui.control.NumericEditField
+        t                         matlab.ui.control.NumericEditField
+        relativehumidityLabel     matlab.ui.control.Label
+        hr                        matlab.ui.control.NumericEditField
         ambientpressurePaEditFieldLabel  matlab.ui.control.Label
-        ambientpressurePaEditField    matlab.ui.control.NumericEditField
-        densityTextAreaLabel          matlab.ui.control.Label
-        densityTextArea               matlab.ui.control.TextArea
-        FunctionTextAreaLabel         matlab.ui.control.Label
-        FunctionTextArea              matlab.ui.control.TextArea
+        p                         matlab.ui.control.NumericEditField
+        densitykgm3TextAreaLabel  matlab.ui.control.Label
+        ro                        matlab.ui.control.TextArea
+        FunctionTextAreaLabel     matlab.ui.control.Label
+        FunctionTextArea          matlab.ui.control.TextArea
     end
+
+    
+    methods (Access = private)
+        
+        
+        function [ro] = air_density(app.t.Value, app.hr.Value, app.p.Value)
+        % AIR_DENSITY calculates density of air
+        %  Usage :[ro] = air_density(t,hr,p)
+        %  Inputs:   t = ambient temperature (ºC)
+        %           hr = relative humidity [%]
+        %            p = ambient pressure [Pa]  (1000 mb = 1e5 Pa)
+        %  Output:  ro = air density [kg/m3]
+
+        %
+        %  Refs:
+        % 1)'Equation for the Determination of the Density of Moist Air' P. Giacomo  Metrologia 18, 33-40 (1982)
+        % 2)'Equation for the Determination of the Density of Moist Air' R. S. Davis Metrologia 29, 67-70 (1992)
+        %
+        % ver 1.0   06/10/2006    Jose Luis Prego Borges (Sensor & System Group, Universitat Politecnica de Catalunya)
+        % ver 1.1   05-Feb-2007   Richard Signell (rsignell@usgs.gov)  Vectorized 
+
+        %-------------------------------------------------------------------------
+        T0 = 273.16;         % Triple point of water (aprox. 0ºC)
+         T = T0 + app.t;         % Ambient temperature in ºKelvin
+
+        %-------------------------------------------------------------------------
+        %-------------------------------------------------------------------------
+        % 1) Coefficients values
+
+         R =  8.314510;           % Molar ideal gas constant   [J/(mol.ºK)]
+        Mv = 18.015*10^-3;        % Molar mass of water vapour [kg/mol]
+        Ma = 28.9635*10^-3;       % Molar mass of dry air      [kg/mol]
+
+         A =  1.2378847*10^-5;    % [ºK^-2]
+         B = -1.9121316*10^-2;    % [ºK^-1]
+         C = 33.93711047;         %
+         D = -6.3431645*10^3;     % [ºK]
+ 
+        a0 =  1.58123*10^-6;      % [ºK/Pa]
+        a1 = -2.9331*10^-8;       % [1/Pa]
+        a2 =  1.1043*10^-10;      % [1/(ºK.Pa)]
+        b0 =  5.707*10^-6;        % [ºK/Pa]
+        b1 = -2.051*10^-8;        % [1/Pa]
+        c0 =  1.9898*10^-4;       % [ºK/Pa]
+        c1 = -2.376*10^-6;        % [1/Pa]
+         d =  1.83*10^-11;        % [ºK^2/Pa^2]
+         e = -0.765*10^-8;        % [ºK^2/Pa^2]
+
+        %-------------------------------------------------------------------------
+        % 2) Calculation of the saturation vapour pressure at ambient temperature, in [Pa]
+        psv = exp(A.*(T.^2) + B.*T + C + D./T);   % [Pa]
+
+
+        %-------------------------------------------------------------------------
+        % 3) Calculation of the enhancement factor at ambient temperature and pressure
+        fpt = 1.00062 + (3.14*10^-8)*app.p + (5.6*10^-7)*(app.t.^2);
+
+
+        %-------------------------------------------------------------------------
+        % 4) Calculation of the mole fraction of water vapour
+         xv = app.hr.*fpt.*psv.*(1./app.p)*(10^-2);
+
+
+        %-------------------------------------------------------------------------
+        % 5) Calculation of the compressibility factor of air
+          Z = 1 - ((app.p./T).*(a0 + a1*app.t + a2*(app.t.^2) + (b0+b1*app.t).*xv + (c0+c1*app.t).*(xv.^2))) + ((app.p.^2/T.^2).*(d + e.*(xv.^2)));
+
+
+        %-------------------------------------------------------------------------
+        % 6) Final calculation of the air density in [kg/m^3]
+         ro = (app.p.*Ma./(Z.*R.*T)).*(1 - xv.*(1-Mv./Ma));    
+        
+        end
+        
+    end
+    
 
     % App initialization and construction
     methods (Access = private)
@@ -69,9 +145,9 @@ classdef densityCalculation < matlab.apps.AppBase
             app.ambienttemperatureCEditFieldLabel.Position = [64 247 135 22];
             app.ambienttemperatureCEditFieldLabel.Text = 'ambient temperature [C]';
 
-            % Create ambienttemperatureCEditField
-            app.ambienttemperatureCEditField = uieditfield(app.UIFigure, 'numeric');
-            app.ambienttemperatureCEditField.Position = [214 247 100 22];
+            % Create t
+            app.t = uieditfield(app.UIFigure, 'numeric');
+            app.t.Position = [214 247 100 22];
 
             % Create relativehumidityLabel
             app.relativehumidityLabel = uilabel(app.UIFigure);
@@ -79,9 +155,9 @@ classdef densityCalculation < matlab.apps.AppBase
             app.relativehumidityLabel.Position = [86 209 113 22];
             app.relativehumidityLabel.Text = 'relative humidity [%]';
 
-            % Create relativehumidityEditField
-            app.relativehumidityEditField = uieditfield(app.UIFigure, 'numeric');
-            app.relativehumidityEditField.Position = [214 209 100 22];
+            % Create hr
+            app.hr = uieditfield(app.UIFigure, 'numeric');
+            app.hr.Position = [214 209 100 22];
 
             % Create ambientpressurePaEditFieldLabel
             app.ambientpressurePaEditFieldLabel = uilabel(app.UIFigure);
@@ -89,29 +165,29 @@ classdef densityCalculation < matlab.apps.AppBase
             app.ambientpressurePaEditFieldLabel.Position = [76 170 123 22];
             app.ambientpressurePaEditFieldLabel.Text = 'ambient pressure [Pa]';
 
-            % Create ambientpressurePaEditField
-            app.ambientpressurePaEditField = uieditfield(app.UIFigure, 'numeric');
-            app.ambientpressurePaEditField.Position = [214 170 100 22];
+            % Create p
+            app.p = uieditfield(app.UIFigure, 'numeric');
+            app.p.Position = [214 170 100 22];
 
-            % Create densityTextAreaLabel
-            app.densityTextAreaLabel = uilabel(app.UIFigure);
-            app.densityTextAreaLabel.HorizontalAlignment = 'right';
-            app.densityTextAreaLabel.Position = [364 224 44 22];
-            app.densityTextAreaLabel.Text = 'density';
+            % Create densitykgm3TextAreaLabel
+            app.densitykgm3TextAreaLabel = uilabel(app.UIFigure);
+            app.densitykgm3TextAreaLabel.HorizontalAlignment = 'right';
+            app.densitykgm3TextAreaLabel.Position = [372 224 86 22];
+            app.densitykgm3TextAreaLabel.Text = 'density [kg/m3]';
 
-            % Create densityTextArea
-            app.densityTextArea = uitextarea(app.UIFigure);
-            app.densityTextArea.Position = [423 188 150 60];
+            % Create ro
+            app.ro = uitextarea(app.UIFigure);
+            app.ro.Position = [473 188 150 60];
 
             % Create FunctionTextAreaLabel
             app.FunctionTextAreaLabel = uilabel(app.UIFigure);
             app.FunctionTextAreaLabel.HorizontalAlignment = 'right';
-            app.FunctionTextAreaLabel.Position = [356 360 52 22];
+            app.FunctionTextAreaLabel.Position = [406 370 52 22];
             app.FunctionTextAreaLabel.Text = 'Function';
 
             % Create FunctionTextArea
             app.FunctionTextArea = uitextarea(app.UIFigure);
-            app.FunctionTextArea.Position = [423 324 150 60];
+            app.FunctionTextArea.Position = [473 334 150 60];
         end
     end
 
